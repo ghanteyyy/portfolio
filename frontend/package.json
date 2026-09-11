@@ -1,0 +1,22 @@
+{
+	"name": "santosh-portfolio",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite --host 127.0.0.1",
+		"build": "vite build",
+		"preview": "vite preview --host 127.0.0.1",
+		"format": "prettier --write src public/*.svg index.html vite.config.js package.json ../README.md ../.prettierrc.json",
+		"format:check": "prettier --check src public/*.svg index.html vite.config.js package.json ../README.md ../.prettierrc.json"
+	},
+	"dependencies": {
+		"@fortawesome/fontawesome-free": "^7.0.0",
+		"react": "^19.1.0",
+		"react-dom": "^19.1.0"
+	},
+	"devDependencies": {
+		"prettier": "3.9.6",
+		"vite": "^7.1.0"
+	}
+}

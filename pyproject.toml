@@ -1,0 +1,16 @@
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+extend-exclude = [".venv", "frontend", "backend/staticfiles", "backend/media"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# Django must configure its settings before importing the command dispatcher.
+"backend/manage.py" = ["E402"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "tab"
+line-ending = "lf"

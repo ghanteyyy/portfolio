@@ -1,0 +1,73 @@
+name: Validate
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: portfolio
+          POSTGRES_USER: portfolio
+          POSTGRES_PASSWORD: ci-database-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U portfolio -d portfolio"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DJANGO_DEBUG: 'true'
+      DJANGO_SECRET_KEY: ci-only-not-a-deployment-secret-0123456789-abcdefghijklmnopqrstuvwxyz
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,testserver
+      POSTGRES_HOST: localhost
+      POSTGRES_DB: portfolio
+      POSTGRES_USER: portfolio
+      POSTGRES_PASSWORD: ci-database-password
+      POSTGRES_SSLMODE: disable
+      REDIS_URL: redis://localhost:6379/0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: pip install -r backend/requirements-dev.txt
+      - run: npm --prefix frontend ci
+      - run: npm --prefix frontend run format:check
+      - run: npm --prefix frontend run build
+      - run: python -m ruff check backend deployment
+      - run: python -m ruff format backend deployment --check
+      - run: python manage.py makemigrations --check --dry-run
+        working-directory: backend
+      - run: python backend/manage.py test portfolio --noinput
+      - run: python backend/manage.py check --deploy --fail-level WARNING
+        env:
+          DJANGO_DEBUG: 'false'
+      - run: docker build -t portfolio:ci .
+      - name: Smoke test the production container
+        env:
+          DJANGO_DEBUG: 'false'
+          TRUST_PROXY_HEADERS: 'true'
+        run: |
+          docker run -d --name portfolio --network host \
+            -e DJANGO_DEBUG -e DJANGO_SECRET_KEY -e DJANGO_ALLOWED_HOSTS \
+            -e POSTGRES_HOST -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD \
+            -e POSTGRES_SSLMODE -e REDIS_URL -e TRUST_PROXY_HEADERS portfolio:ci
+          curl --fail --retry 20 --retry-delay 3 --retry-connrefused http://127.0.0.1:8000/api/health/
+          docker exec portfolio python manage.py seed_portfolio
+          curl --fail -H 'X-Forwarded-Proto: https' http://127.0.0.1:8000/api/portfolio/
+          curl --fail -H 'X-Forwarded-Proto: https' http://127.0.0.1:8000/admin/
+      - name: Container logs
+        if: always()
+        run: docker logs portfolio || true

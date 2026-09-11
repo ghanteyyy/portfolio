@@ -1,0 +1,17 @@
+.venv
+**/node_modules
+frontend/dist
+**/__pycache__
+**/*.sqlite3
+.git
+.env
+.env.*
+backend/staticfiles
+backend/media
+.ruff_cache
+.github
+**/tests.py
+
+backups
+*.dump
+portfolio-export.json

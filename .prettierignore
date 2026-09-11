@@ -1,0 +1,9 @@
+.venv/
+**/node_modules/
+frontend/dist/
+frontend/package-lock.json
+backend/staticfiles/
+backend/media/
+backend/assets/
+**/__pycache__/
+**/*.sqlite3
