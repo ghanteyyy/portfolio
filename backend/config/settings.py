@@ -3,13 +3,20 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from .production import env_bool, env_list
+from .production import database_from_url, env_bool, env_list
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR.parent / ".env", override=False)
 DEBUG = env_bool("DJANGO_DEBUG")
+ON_RENDER = env_bool("RENDER")
+if ON_RENDER and DEBUG:
+	raise RuntimeError(
+		"Set DJANGO_DEBUG=false on Render and configure DATABASE_URL for PostgreSQL."
+	)
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "")
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1" if DEBUG else "")
+if os.getenv("RENDER_EXTERNAL_HOSTNAME"):
+	ALLOWED_HOSTS.append(os.environ["RENDER_EXTERNAL_HOSTNAME"])
 if not SECRET_KEY or (not DEBUG and (len(SECRET_KEY) < 50 or SECRET_KEY.startswith("replace-"))):
 	raise RuntimeError("Set a strong DJANGO_SECRET_KEY (at least 50 characters in production).")
 if not DEBUG and (not ALLOWED_HOSTS or "*" in ALLOWED_HOSTS):
@@ -49,7 +56,9 @@ TEMPLATES = [
 	}
 ]
 WSGI_APPLICATION = "config.wsgi.application"
-if os.getenv("POSTGRES_HOST"):
+if os.getenv("DATABASE_URL"):
+	DATABASES = {"default": database_from_url(os.environ["DATABASE_URL"])}
+elif os.getenv("POSTGRES_HOST"):
 	DATABASES = {
 		"default": {
 			"ENGINE": "django.db.backends.postgresql",
@@ -68,7 +77,9 @@ elif DEBUG:
 		"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}
 	}
 else:
-	raise RuntimeError("Configure PostgreSQL for production.")
+	raise RuntimeError(
+		"Set DATABASE_URL or POSTGRES_HOST/DB/USER/PASSWORD to configure PostgreSQL for production."
+	)
 REDIS_URL = os.getenv("REDIS_URL")
 if REDIS_URL:
 	CACHES = {
@@ -109,7 +120,9 @@ CSRF_TRUSTED_ORIGINS = env_list(
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/admin/"
 
-TRUST_PROXY_HEADERS = env_bool("TRUST_PROXY_HEADERS", False)
+if ON_RENDER and os.getenv("RENDER_EXTERNAL_HOSTNAME"):
+	CSRF_TRUSTED_ORIGINS.append("https://" + os.environ["RENDER_EXTERNAL_HOSTNAME"])
+TRUST_PROXY_HEADERS = env_bool("TRUST_PROXY_HEADERS", ON_RENDER)
 if TRUST_PROXY_HEADERS:
 	SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = not DEBUG

@@ -14,7 +14,7 @@ COPY backend/ ./backend/
 COPY --from=frontend /app/frontend/dist ./frontend/dist
 COPY deployment/gunicorn.conf.py /app/gunicorn.conf.py
 COPY deployment/entrypoint.sh /app/entrypoint.sh
-RUN DJANGO_DEBUG=true DJANGO_SECRET_KEY=build-only-not-used-by-the-running-server python backend/manage.py collectstatic --noinput \
+RUN RENDER=false DJANGO_DEBUG=true DJANGO_SECRET_KEY=build-only-not-used-by-the-running-server python backend/manage.py collectstatic --noinput \
     && groupadd --gid 10001 app && useradd --uid 10001 --gid app --no-create-home app \
     && mkdir -p /app/backend/media /app/backend/staticfiles \
     && chown -R app:app /app/backend/media /app/backend/staticfiles \
