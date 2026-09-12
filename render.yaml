@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: ghanteyyy
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health/
+    envVars:
+      - key: DJANGO_DEBUG
+        value: 'false'
+      - key: DJANGO_ALLOWED_HOSTS
+        value: 'santoshkumarkarki.com.np'
+      - key: CSRF_TRUSTED_ORIGINS
+        value: 'https://santoshkumarkarki.com.np'
+      - key: TRUST_PROXY_HEADERS
+        value: 'true'
+      - key: WEB_CONCURRENCY
+        value: '1'
+      - key: RATE_LIMIT_ENABLED
+        value: 'true'
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: ghanteyyy-cache
+          property: connectionString
+  - type: keyvalue
+    name: ghanteyyy-cache
+    plan: free
+    ipAllowList: []
+    maxmemoryPolicy: noeviction
