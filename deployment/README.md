@@ -28,13 +28,11 @@ Back up PostgreSQL and the media volume before updates. Re-run `up -d --build` t
 
 ## Render
 
-`render.yaml` configures a free Docker web service and free Key Value cache. PostgreSQL uses your existing Neon database.
+`render.yaml` configures a free Docker web service using your existing Neon PostgreSQL database. Redis is optional: without `REDIS_URL`, rate limits use PostgreSQL.
 
-1. Push the code, including `render.yaml`; keep `.env.production` and `.env.render` private.
-2. Create a Render Blueprint from the repository. Enter `DJANGO_SECRET_KEY` and `DATABASE_URL` from `.env.render` when prompted. Redis is connected automatically.
-3. For an existing manually created service, import `.env.render` under **Environment → Add from .env**, create a free Key Value instance in the same region, and set `REDIS_URL` to its internal connection URL. Redeploy the updated Docker image.
-4. Add your domain under **Settings → Custom Domains** and apply the DNS records Render provides. Use `/api/health/` for the health check.
+1. Push the updated code, including migrations. Keep `.env.production` and `.env.render` private.
+2. For an existing service, import `.env.render` under **Environment → Add from .env**. Remove any unused or invalid `REDIS_URL`, then redeploy.
+3. Alternatively, create a Blueprint from `render.yaml` and enter the secret and database URL when prompted. Match its service name to your existing service before applying it.
+4. Add your domain under **Settings → Custom Domains** and apply Render's DNS records. Set the health check to `/api/health/`.
 
-The Blueprint web service name is `ghanteyyy`; match the existing service name before using a Blueprint to manage it. The Render hostname is allowed automatically. Migrations run at startup; seed portfolio content and create a strong administrator after deployment.
-
-Free Render storage does not preserve uploaded photos across restarts. External image storage is still needed for persistent admin uploads.
+Startup applies migrations, including the rate-limit table. Seed portfolio content and create a strong administrator after deployment. Free Render uploads are temporary; persistent admin photos still require external image storage.

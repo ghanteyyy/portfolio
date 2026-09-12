@@ -12,7 +12,7 @@ class ContactMessage(models.Model):
 		ordering = ["-created_at"]
 
 	def __str__(self):
-		return f"{self.name} — {self.email}"
+		return f"{self.name} â€” {self.email}"
 
 
 class Profile(models.Model):
@@ -59,4 +59,10 @@ class Experience(models.Model):
 		ordering = ["order", "id"]
 
 	def __str__(self):
-		return f"{self.role} — {self.organization}"
+		return f"{self.role} â€” {self.organization}"
+
+
+class RateLimitBucket(models.Model):
+	key = models.CharField(max_length=80, primary_key=True)
+	count = models.PositiveBigIntegerField(default=0)
+	expires_at = models.DateTimeField(db_index=True)

@@ -22,13 +22,3 @@ services:
         sync: false
       - key: DATABASE_URL
         sync: false
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: ghanteyyy-cache
-          property: connectionString
-  - type: keyvalue
-    name: ghanteyyy-cache
-    plan: free
-    ipAllowList: []
-    maxmemoryPolicy: noeviction

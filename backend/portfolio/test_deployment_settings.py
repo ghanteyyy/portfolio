@@ -52,3 +52,9 @@ class DeploymentSettingsTests(SimpleTestCase):
 	def test_local_sqlite_is_preserved(self):
 		settings = self.settings(RENDER="false", DJANGO_DEBUG="true", DATABASE_URL="")
 		self.assertEqual(settings["DATABASES"]["default"]["ENGINE"], "django.db.backends.sqlite3")
+
+	def test_production_can_start_without_redis(self):
+		settings = self.settings(REDIS_URL="")
+		self.assertFalse(settings["DEBUG"])
+		self.assertFalse(settings["REDIS_URL"])
+		self.assertTrue(settings["RATE_LIMIT_ENABLED"])

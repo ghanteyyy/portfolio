@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import RequestDataTooBig
 from django.http import JsonResponse
+from portfolio.rate_limits import increment_database_limit
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,9 @@ class ProductionMiddleware:
 					)
 				key = "rate:" + hashlib.sha256(f"{request.path}:{address}".encode()).hexdigest()
 				try:
-					if cache.add(key, 1, timeout=limit[1]):
+					if not settings.REDIS_URL:
+						count = increment_database_limit(key, limit[1])
+					elif cache.add(key, 1, timeout=limit[1]):
 						count = 1
 					else:
 						try:

@@ -89,8 +89,7 @@ if REDIS_URL:
 			"OPTIONS": {"socket_connect_timeout": 3, "socket_timeout": 3},
 		}
 	}
-elif not DEBUG:
-	raise RuntimeError("Set REDIS_URL for shared production rate limiting.")
+
 RATE_LIMIT_ENABLED = env_bool("RATE_LIMIT_ENABLED", True)
 AUTH_PASSWORD_VALIDATORS = [
 	{"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

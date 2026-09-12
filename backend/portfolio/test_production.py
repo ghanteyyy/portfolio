@@ -50,8 +50,11 @@ class ProductionTests(TestCase):
 		self.assertEqual(response.status_code, 503)
 		self.assertEqual(response.json(), {"status": "unavailable"})
 
+	@override_settings(REDIS_URL="")
 	def test_cache_failure_does_not_allow_unlimited_attempts(self):
-		with patch("config.middleware.cache.add", side_effect=ConnectionError("offline")):
+		with patch(
+			"config.middleware.increment_database_limit", side_effect=ConnectionError("offline")
+		):
 			response = self.client.post("/api/contact/", {}, content_type="application/json")
 		self.assertEqual(response.status_code, 503)
 
