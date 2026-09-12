@@ -31,8 +31,8 @@ Back up PostgreSQL and the media volume before updates. Re-run `up -d --build` t
 `render.yaml` configures a free Docker web service using your existing Neon PostgreSQL database. Redis is optional: without `REDIS_URL`, rate limits use PostgreSQL.
 
 1. Push the updated code, including migrations. Keep `.env.production` and `.env.render` private.
-2. For an existing service, import `.env.render` under **Environment → Add from .env**. Remove any unused or invalid `REDIS_URL`, then redeploy.
+2. For an existing service, import `.env.render` under **Environment â†’ Add from .env**. Remove any unused or invalid `REDIS_URL`, then redeploy.
 3. Alternatively, create a Blueprint from `render.yaml` and enter the secret and database URL when prompted. Match its service name to your existing service before applying it.
-4. Add your domain under **Settings → Custom Domains** and apply Render's DNS records. Set the health check to `/api/health/`.
+4. Add your domain under **Settings â†’ Custom Domains** and apply Render's DNS records. Set the health check to `/api/health/`.
 
-Startup applies migrations, including the rate-limit table. Seed portfolio content and create a strong administrator after deployment. Free Render uploads are temporary; persistent admin photos still require external image storage.
+Startup applies migrations and seeds CV content only when no profile exists. Create a strong administrator after deployment. Free Render uploads are temporary; persistent admin photos still require external image storage.

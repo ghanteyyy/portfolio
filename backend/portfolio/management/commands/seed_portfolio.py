@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django.db import transaction
 
 from portfolio.models import Experience, Profile, Project
 
@@ -6,7 +7,16 @@ from portfolio.models import Experience, Profile, Project
 class Command(BaseCommand):
 	help = "Load CV content once, preserving later admin edits."
 
+	def add_arguments(self, parser):
+		parser.add_argument(
+			"--if-empty", action="store_true", help="Only seed when no profile exists."
+		)
+
+	@transaction.atomic
 	def handle(self, *args, **options):
+		if options.get("if_empty") and Profile.objects.exists():
+			self.stdout.write("Portfolio already configured; skipping initial content.")
+			return
 		Profile.objects.get_or_create(
 			pk=1,
 			defaults={
@@ -50,7 +60,7 @@ class Command(BaseCommand):
 					"degree": "Bachelor of Computer Application",
 					"short": "BCA",
 					"institution": "Tribhuvan University",
-					"period": "2020 — 2025",
+					"period": "2020 â€” 2025",
 				},
 			},
 		)
@@ -107,14 +117,14 @@ class Command(BaseCommand):
 				"Lecturer",
 				"Arunima College",
 				"Bauddha, Kathmandu, Nepal",
-				"2025 — Present",
+				"2025 â€” Present",
 				"Teaching C Programming and Operation Research to undergraduate students. Mentoring students in programming fundamentals, analytical thinking, debugging, and problem solving.",
 			),
 			(
 				"Backend Developer Intern",
 				"Nepal Oil Corporation",
 				"Lokanthali, Bhaktapur, Nepal",
-				"Nov 2024 — Feb 2025",
+				"Nov 2024 â€” Feb 2025",
 				"Developed REST APIs for job postings, candidate applications, resume uploads, and shortlisting. Implemented validation and authentication, handled candidate data securely, and collaborated with frontend developers on API integration.",
 			),
 		]
